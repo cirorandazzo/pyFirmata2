@@ -404,7 +404,7 @@ class Board(object):
             if self.analog[pin_nr].reporting:
                 self.analog[pin_nr].value = value
                 if not self.analog[pin_nr].callback is None:
-                    self.analog[pin_nr].callback(value)
+                    self.analog[pin_nr].callback(value, **self.analog[pin_nr].callback_kwargs)
         except IndexError:
             raise ValueError
 
@@ -498,7 +498,7 @@ class Port(object):
                     pin_nr = pin.pin_number - self.port_number * 8
                     pin.value = (mask & (1 << pin_nr)) > 0
                     if not pin.callback is None:
-                        pin.callback(pin.value)
+                        pin.callback(pin.value, **pin.callback_kwargs)
 
 
 class Pin(object):
@@ -579,21 +579,23 @@ class Pin(object):
             warnings.warn("Use a callback handler for pin {0}".format(self.__str__()))
         return self.value
 
-    def register_callback(self, _callback):
+    def register_callback(self, _callback, _callback_kwarg_dict=None):
         """
         Register a callback to read from an analogue or digital port
 
-        :arg value: callback with one argument which receives the data:
-        boolean if the pin is digital, or 
-        float from 0 to 1 if the pin is an analgoue input
+        :arg _callback: callback with one argument (`value`) which receives the data: boolean if the pin is digital, or float from 0 to 1 if the pin is an analgoue input.
+        :arg _callback_kwarg_dict: dictionary containing kwargs to pass to callback function
         """        
         self.callback = _callback
+
+        self.callback_kwargs = _callback_kwarg_dict
 
     def unregiser_callback(self):
         """
         Unregisters the callback which receives data from a pin
         """
         self.callback = None
+        self.callback_kwargs = None
 
     def write(self, value):
         """
